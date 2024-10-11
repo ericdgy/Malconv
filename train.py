@@ -49,10 +49,10 @@ def train_model(model, criterion, optimizer, device, epochs, train_loader, valid
             print("Step is : ", step)
 
             model.train()
-            model.zero_grad()
+            optimizer.zero_grad()
 
-            exe_input = Variable(batch_data[0].long(), requires_grad=False)
-            label = Variable(batch_data[1].float(), requires_grad=False)
+            exe_input = batch_data[0].to(device).long()
+            label = batch_data[1].to(device).float()
 
             outputs = model(exe_input)
 
@@ -70,13 +70,14 @@ def train_model(model, criterion, optimizer, device, epochs, train_loader, valid
         epoch_loss /= dataset_size
         print('Epoch {:<4} Loss: {:.4f}'.format(epoch, epoch_loss))
 
-        acc, pre, rec, f1 = eval_model(model, valid_loader, device)
-        print('Epoch accuracy is {:.3f}, precision is {:.3f}, Recall is {:.3f}, F1 is {:.3f}.'.format(acc, pre, rec, f1))
-        scheduler.step(f1)
+        scheduler.step(epoch_loss)
 
-        if f1 >= best_f1:
-            best_f1 = f1
-            best_model = model
-            save_model(model, f'params_{epoch + 1:04}.pt')
+    acc, pre, rec, f1 = eval_model(model, valid_loader, device)
+    print('Epoch accuracy is {:.3f}, precision is {:.3f}, Recall is {:.3f}, F1 is {:.3f}.'.format(acc, pre, rec, f1))
+    
+    if f1 >= best_f1:
+        best_f1 = f1
+        best_model = model
+        save_model(model, 'best_model_final.pt')
 
     return best_model

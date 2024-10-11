@@ -34,7 +34,7 @@ print('\tGoodware Count:', val_table['ground_truth'].value_counts().iloc[0])
 
 first_n_byte = 2000000
 input_dim = 128
-nhead = 8
+nhead = 16
 num_encoder_layers = 4
 dim_feedforward = 512
 num_classes = 1

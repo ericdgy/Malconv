@@ -4,10 +4,10 @@ from dataset import ExeDataset, init_loader
 from model import MalConv
 from train import train_model
 
-train_data_path = 'data/train/'
-train_label_path = 'data/train-label.csv'
-valid_data_path = 'data/valid/'
-valid_label_path = 'data/valid-label.csv'
+train_data_path = 'data/train_sections/'
+train_label_path = 'data/train-label-headers.csv'
+valid_data_path = 'data/valid_sections/'
+valid_label_path = 'data/valid-label-headers.csv'
 
 tr_label_table = pd.read_csv(train_label_path, header=None, index_col=0)
 tr_label_table.index = tr_label_table.index.str.upper()
@@ -24,13 +24,13 @@ tr_table = tr_table.drop(val_table.index.join(tr_table.index, how='inner'))
 
 print('Training Set:')
 print('\tTotal', len(tr_table), 'files')
-print('\tMalware Count :', tr_table['ground_truth'].value_counts()[1])
-print('\tGoodware Count:', tr_table['ground_truth'].value_counts()[0])
+print('\tMalware Count :', tr_table['ground_truth'].value_counts().iloc[1])
+print('\tGoodware Count:', tr_table['ground_truth'].value_counts().iloc[0])
 
 print('Validation Set:')
 print('\tTotal', len(val_table), 'files')
-print('\tMalware Count :', val_table['ground_truth'].value_counts()[1])
-print('\tGoodware Count:', val_table['ground_truth'].value_counts()[0])
+print('\tMalware Count :', val_table['ground_truth'].value_counts().iloc[1])
+print('\tGoodware Count:', val_table['ground_truth'].value_counts().iloc[0])
 
 first_n_byte = 2000000
 window_size = 500
@@ -44,10 +44,18 @@ valid_loader = init_loader(valid_dataset, batch_size)[1]
 
 model = MalConv(input_length=first_n_byte, window_size=window_size)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
+
+if torch.cuda.is_available():
+    print("CUDA is available. Training on GPU.")
+else:
+    print("CUDA is not available. Training on CPU.")
+
+
 criterion = torch.nn.BCEWithLogitsLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-4)
 
-model = model.to(device)
+
 epochs = 10
 
 best_model = train_model(model, criterion, optimizer, device, epochs, train_loader, valid_loader)
